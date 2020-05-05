@@ -45,7 +45,7 @@ struct sockaddr_in get_addr()
     return address;
 }
 
-send_mail(int client_fd)
+void send_mail(int client_fd)
 {
     char buffer[1024];
     memset(buffer, 0, 1024);
@@ -92,6 +92,65 @@ void recv_mail(int client_fd)
         printf("Error during sending \n");
     }
 
+    memset(buffer, 0, 1024);
+    recv(client_fd, buffer, sizeof(buffer), 0);
+
+    printf("%s", buffer);
+    if(strcmp(buffer, "There are no unread emails. Have a nice day!\n")==0)
+    {
+        return;
+    }
+    printf("\n-------------------------\n");
+    
+    memset(buffer, 0, 1024);
+    recv(client_fd, buffer, sizeof(buffer), 0);
+
+    while(strcmp(buffer, "DONE") != 0)
+    {
+        int x = atoi(buffer);
+        char email[x];
+        memset(email, 0, x);
+        for(int i = 0; i < x; i ++)
+        {
+            memset(buffer, 0, 1024);
+            recv(client_fd, buffer, sizeof(buffer), 0);
+            strcat(email, buffer);
+        }
+        printf("%s", email);
+        printf("\n-------------------------\n");
+        /*
+        printf("Do you want to save this email?(y/n)");
+        char ans[50];
+        fgets(ans, 50, stdin);
+        if(strcmp(ans, "y\n") == 0)
+        {
+            UP: 
+            printf("Please enter a name : ");
+            fgets(ans, 50, stdin);
+            FILE *fp;
+            fp = fopen(ans, "r");
+            if(fp != NULL)
+            {
+                printf("File already exists.\n");
+                goto UP;
+            }
+            fp = fopen(ans, "w");
+            fprintf(fp, "%s", email);
+            fclose(fp);
+            printf("Email saved as %s\n", ans);
+        }
+        else
+        {
+            //do nothing
+        }
+        */
+
+       //save with random strings and move on.
+        memset(buffer, 0, 1024);
+        recv(client_fd, buffer, sizeof(buffer), 0);
+        
+        
+    }
     
 }
 

@@ -146,6 +146,38 @@ void send_mail_handler(int client_sockfd)
     fclose(fp);
 }
 
+void retrieve_mail(int client_sockfd, char emailname[])
+{
+    char buffer[1024];
+    memset(buffer, 0, 1024);
+
+    FILE *fp;
+    fp = fopen(emailname, "r");
+
+    fseek(fp, 0, 2);
+    int size = ftell(fp);
+    printf("%d   ", size);
+    rewind(fp);
+    sprintf(buffer, "%d", size);
+    if(send(client_sockfd, buffer, sizeof(buffer), 0) < 0)
+    {
+        printf("Error during sending \n");
+    }
+    memset(buffer, 0, 1024);
+
+    for(int i = 0; i < size; i++)
+    {
+        sprintf(buffer, "%c", fgetc(fp));
+        if(send(client_sockfd, buffer, sizeof(buffer), 0) < 0)
+        {
+        printf("Error during sending \n");
+        }
+        memset(buffer, 0, 1024);
+    }
+
+    //remove(emailname);
+}
+
 void recv_mail_handler(int client_sockfd)
 {
     char buffer[1024];
@@ -158,6 +190,7 @@ void recv_mail_handler(int client_sockfd)
 
     FILE *fp;
     fp = fopen(clientIP, "r");
+    printf("%s", clientIP);
     if(fp == NULL)
     {
         strcpy(buffer, "There are no unread emails. Have a nice day!\n");
@@ -200,39 +233,13 @@ void recv_mail_handler(int client_sockfd)
             printf("Error during sending \n");
         }
         close(client_sockfd);
-    }
-}
-
-void retrieve_mail(int client_sockfd, char emailname[])
-{
-    char buffer[1024];
-    memset(buffer, 0, 1024);
-
-    FILE *fp;
-    fp = fopen(emailname, "r");
-
-    fseek(fp, 0, 2);
-    int size = ftell(fp);
-    printf("%d   ", size);
-    rewind(fp);
-    sprintf(buffer, "%d", size);
-    if(send(client_sockfd, buffer, sizeof(buffer), 0) < 0)
-    {
-        printf("Error during sending \n");
-    }
-    memset(buffer, 0, 1024);
-
-    for(int i = 0; i < size; i++)
-    {
-        sprintf(buffer, "%c", fgetc(fp));
-        if(send(client_sockfd, buffer, sizeof(buffer), 0) < 0)
-        {
-        printf("Error during sending \n");
-        }
-        memset(buffer, 0, 1024);
+        rewind(fp);
+        printf("1 \n");
+        fclose(fp);
+        printf("2 \n");
     }
 
-    remove(emailname);
+    
 }
 
 int main(int argc, char const *argv[]) 
