@@ -122,8 +122,7 @@ void recv_mail(int client_fd)
         char emailname[100];
         srand(time(0));
         memset(emailname, 0, 100);
-
-        LOOP:
+        
         do
         {    
             int random_number = rand()%1000 + 1;
@@ -132,11 +131,7 @@ void recv_mail(int client_fd)
             strcat(emailname, random_string);
             FILE *fp1;
             fp1 = fopen(emailname, "r");
-            if(fp1 != NULL)
-            {
-                goto LOOP;
-            }
-        } while (0);
+        } while (fp1 != NULL);
         
 
         FILE *fp;
