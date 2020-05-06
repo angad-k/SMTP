@@ -220,7 +220,8 @@ int main(int argc, char *argv[])
     
             struct sockaddr_in address = get_addr();
 
-            if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) != 0) { 
+            if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) != 0) 
+            { 
                 printf("connection with the server failed...\n"); 
                 exit(0); 
             } 
@@ -235,7 +236,8 @@ int main(int argc, char *argv[])
     
             struct sockaddr_in address = get_addr();
 
-            if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) != 0) { 
+            if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) != 0) 
+            { 
                 printf("connection with the server failed...\n"); 
                 exit(0); 
             }

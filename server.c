@@ -85,11 +85,10 @@ void send_mail_handler(int client_sockfd)
     struct in_addr ipAddr = pV4Addr->sin_addr;
     char clientIP[INET_ADDRSTRLEN];
     inet_ntop( AF_INET, &ipAddr, clientIP, INET_ADDRSTRLEN );
+    printf(" %s\n", clientIP);
 
     memset(buffer, 0, 1024);
-    strcpy(buffer, "Your IP address : \n");
-    strcat(buffer, clientIP);
-    strcat(buffer, "\nPlease enter destination IP address. \n");
+    sprintf(buffer, "Your IP address : \n%s\nPlease enter destination IP address. \n", clientIP);
     if(send(client_sockfd, buffer, sizeof(buffer), 0) < 0)
     {
         printf("Error during sending \n");
@@ -101,18 +100,12 @@ void send_mail_handler(int client_sockfd)
         return;
     }
     
-    printf("1\n");
     char toIP[INET_ADDRSTRLEN];
-    printf("2\n");
     memset(toIP, 0, INET_ADDRSTRLEN);
     strncpy(toIP, buffer, strlen(buffer)-1);
 
     memset(buffer, 0, 1024);
-    strcat(buffer, "Complete the email below. Send 'END_OF_EMAIL' on a lone line to end the email. Character limit is 10000.\nFrom : ");
-    strcat(buffer, clientIP);
-    strcat(buffer, "\nTo : ");
-    strcat(buffer, toIP);
-    strcat(buffer, "\nBody : \n");
+    sprintf(buffer, "Complete the email below. Send 'END_OF_EMAIL' on a lone line to end the email. Character limit is 10000.\nFrom : %s\nTo : %s\nBody : \n", clientIP, toIP);
     if(send(client_sockfd, buffer, sizeof(buffer), 0) < 0)
     {
         printf("Error during sending \n");
@@ -132,12 +125,14 @@ void send_mail_handler(int client_sockfd)
         
     }
     close(client_sockfd);
-    printf("%s", body);
+    printf("END_OF_EMAIL reached");
 
     char emailname[100];
     memset(emailname, 0, 100);
     sprintf(emailname, "%s_%s_", toIP, clientIP);
     srand(time(0));
+
+    //This loop is there to prevent overwriting.
     LOOP:
         do
         {    
@@ -173,7 +168,7 @@ void retrieve_mail(int client_sockfd, char emailname[])
 
     fseek(fp, 0, 2);
     int size = ftell(fp);
-    printf("%d   ", size);
+
     rewind(fp);
     sprintf(buffer, "%d", size);
     if(send(client_sockfd, buffer, sizeof(buffer), 0) < 0)
@@ -206,7 +201,7 @@ void recv_mail_handler(int client_sockfd)
 
     FILE *fp;
     fp = fopen(clientIP, "r");
-    printf("%s", clientIP);
+    printf(" %s\n", clientIP);
     if(fp == NULL)
     {
         strcpy(buffer, "There are no unread emails. Have a nice day!\n");
@@ -223,6 +218,7 @@ void recv_mail_handler(int client_sockfd)
         {
             printf("Error during sending \n");
         }
+
         memset(buffer, 0, 1024);
         char emailname[100];
         memset(emailname, 0, 100);
@@ -278,7 +274,7 @@ int main(int argc, char const *argv[])
         int client_sockfd = accept_connection(server_fd, address, addrlen);
 
         recv(client_sockfd, buffer, sizeof(buffer), 0);
-        printf("%s \n", buffer);
+        printf("%s :", buffer);
 
         if(strcmp(buffer, "SEND_MAIL") == 0)
         {
