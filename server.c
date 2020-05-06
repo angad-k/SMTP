@@ -133,20 +133,15 @@ void send_mail_handler(int client_sockfd)
     srand(time(0));
 
     //This loop is there to prevent overwriting.
-    LOOP:
-        do
-        {    
-            int random_number = rand()%1000 + 1;
-            char random_string[4];
-            sprintf(random_string, "%d", random_number);
-            strcat(emailname, random_string);
-            FILE *fp1;
-            fp1 = fopen(emailname, "r");
-            if(fp1 != NULL)
-            {
-                goto LOOP;
-            }
-        } while (0);
+    do
+    {    
+    int random_number = rand()%1000 + 1;
+    char random_string[4];
+    sprintf(random_string, "%d", random_number);
+    strcat(emailname, random_string);
+    FILE *fp1;
+    fp1 = fopen(emailname, "r");
+    } while (fp1!=NULL);
 
     FILE *fp;
     fp = fopen(emailname, "w");
