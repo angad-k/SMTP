@@ -96,8 +96,15 @@ void send_mail_handler(int client_sockfd)
     }
 
     memset(buffer, 0, 1024);
-    recv(client_sockfd, buffer, sizeof(buffer), 0);
+    if(recv(client_sockfd, buffer, sizeof(buffer), 0) <= 0)
+    {
+        return;
+    }
+    
+    printf("1\n");
     char toIP[INET_ADDRSTRLEN];
+    printf("2\n");
+    memset(toIP, 0, INET_ADDRSTRLEN);
     strncpy(toIP, buffer, strlen(buffer)-1);
 
     memset(buffer, 0, 1024);
@@ -118,7 +125,10 @@ void send_mail_handler(int client_sockfd)
     {
         strcat(body, buffer);
         memset(buffer, 0, 1024);
-        recv(client_sockfd, buffer, sizeof(buffer), 0);
+        if(recv(client_sockfd, buffer, sizeof(buffer), 0) <= 0)
+        {
+            return;
+        }
         
     }
     close(client_sockfd);
@@ -126,15 +136,22 @@ void send_mail_handler(int client_sockfd)
 
     char emailname[100];
     memset(emailname, 0, 100);
-    strcat(emailname, toIP);
-    strcat(emailname, "_");
-    strcat(emailname, clientIP);
-    strcat(emailname, "_");
+    sprintf(emailname, "%s_%s_", toIP, clientIP);
     srand(time(0));
-    int random_number = rand()%1000 + 1;
-    char random_string[4];
-    sprintf(random_string, "%d", random_number);
-    strcat(emailname, random_string);
+    LOOP:
+        do
+        {    
+            int random_number = rand()%1000 + 1;
+            char random_string[4];
+            sprintf(random_string, "%d", random_number);
+            strcat(emailname, random_string);
+            FILE *fp1;
+            fp1 = fopen(emailname, "r");
+            if(fp1 != NULL)
+            {
+                goto LOOP;
+            }
+        } while (0);
 
     FILE *fp;
     fp = fopen(emailname, "w");
@@ -174,8 +191,7 @@ void retrieve_mail(int client_sockfd, char emailname[])
         }
         memset(buffer, 0, 1024);
     }
-
-    //remove(emailname);
+    remove(emailname);
 }
 
 void recv_mail_handler(int client_sockfd)
@@ -234,9 +250,8 @@ void recv_mail_handler(int client_sockfd)
         }
         close(client_sockfd);
         rewind(fp);
-        printf("1 \n");
         fclose(fp);
-        printf("2 \n");
+        remove(clientIP);
     }
 
     

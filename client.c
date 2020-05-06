@@ -118,34 +118,36 @@ void recv_mail(int client_fd)
         }
         printf("%s", email);
         printf("\n-------------------------\n");
-        /*
-        printf("Do you want to save this email?(y/n)");
-        char ans[50];
-        fgets(ans, 50, stdin);
-        if(strcmp(ans, "y\n") == 0)
-        {
-            UP: 
-            printf("Please enter a name : ");
-            fgets(ans, 50, stdin);
-            FILE *fp;
-            fp = fopen(ans, "r");
-            if(fp != NULL)
-            {
-                printf("File already exists.\n");
-                goto UP;
-            }
-            fp = fopen(ans, "w");
-            fprintf(fp, "%s", email);
-            fclose(fp);
-            printf("Email saved as %s\n", ans);
-        }
-        else
-        {
-            //do nothing
-        }
-        */
 
-       //save with random strings and move on.
+        char emailname[100];
+        srand(time(0));
+        memset(emailname, 0, 100);
+
+        LOOP:
+        do
+        {    
+            int random_number = rand()%1000 + 1;
+            char random_string[4];
+            sprintf(random_string, "%d", random_number);
+            strcat(emailname, random_string);
+            FILE *fp1;
+            fp1 = fopen(emailname, "r");
+            if(fp1 != NULL)
+            {
+                goto LOOP;
+            }
+        } while (0);
+        
+
+        FILE *fp;
+        fp = fopen(emailname, "w");
+        fprintf(fp, "%s", email);
+        fclose(fp);
+
+        fp = fopen("local_emails", "a");
+        fprintf(fp, "%s|", emailname);
+        fclose(fp);
+        //save with random strings and move on.
         memset(buffer, 0, 1024);
         recv(client_fd, buffer, sizeof(buffer), 0);
         
@@ -154,34 +156,98 @@ void recv_mail(int client_fd)
     
 }
 
+void retrieve_mail(char emailname[])
+{
+    FILE *fp;
+    fp = fopen(emailname, "r");
+
+    fseek(fp, 0, 2);
+    int size = ftell(fp);
+    rewind(fp);
+    for(int i = 0; i < size; i++)
+    {
+        printf("%c", fgetc(fp));
+    }
+}
+
+void brws_mail()
+{
+    FILE *fp;
+    fp = fopen("local_emails", "r");
+    if(fp == NULL)
+    {
+        printf("There are no unread emails. Have a nice day!\n");
+    }
+    else
+    {
+        char emailname[100];
+        memset(emailname, 0, 100);
+        printf("------------------------------\n");
+        do
+        {
+            char c = fgetc(fp);
+            if(c == '|')
+            {
+                retrieve_mail(emailname);
+                printf("------------------------------\n"); 
+                memset(emailname, 0, 100);
+            }
+            else
+            {
+                char cstr[2];
+                sprintf(cstr, "%c", c);
+                strcat(emailname, cstr);
+            }
+            
+        } while (!feof(fp));
+        rewind(fp);
+        fclose(fp);
+    }
+}
+
 int main(int argc, char *argv[]) 
 { 
     if(argc != 2)
     {
-        printf("Usage : \n--send\tSend Emails\n--read\tGet unread emails\n");
+        printf("Usage : \n--send\tSend Emails\n--read\tGet unread emails\n--brws\tBrowse read messages\n");
         return(1);
     }
     else
     {
-        int client_fd = setup_client();
-    
-        struct sockaddr_in address = get_addr();
-
-        if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) != 0) { 
-            printf("connection with the server failed...\n"); 
-            exit(0); 
-        }   
         if(strcmp(argv[1], "--send") == 0)
         {
+            int client_fd = setup_client();
+    
+            struct sockaddr_in address = get_addr();
+
+            if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) != 0) { 
+                printf("connection with the server failed...\n"); 
+                exit(0); 
+            } 
+
             send_mail(client_fd);
+
+            close(client_fd);
         }
-        else if(strcmp(argv[1], "--recv"))
+        if(strcmp(argv[1], "--read") == 0)
         {
+            int client_fd = setup_client();
+    
+            struct sockaddr_in address = get_addr();
+
+            if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) != 0) { 
+                printf("connection with the server failed...\n"); 
+                exit(0); 
+            }
+
             recv_mail(client_fd);
+
+            close(client_fd);
         } 
+        if(strcmp(argv[1], "--brws") == 0)
+        {
+            brws_mail();
+        }
     }
-    
-    
-    
-    
+        
 } 
